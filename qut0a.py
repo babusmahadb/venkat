@@ -42,6 +42,50 @@ def disp_vol(cluster: str, svm_name: str, headers_inc: str):
     tab.header(header)
     tab.set_cols_width([18,50])
     tab.set_cols_align(['c','c'])
+    qr="https://{}/api/storage/qtrees/".format(cluster)
+    response = requests.get(qr, headers=headers_inc, verify=False)
+    qres = response.json()
+    qres2=dict(qres)
+    qres3=qres2['records']
+    #print (qres3)
+    #q2 contains qtree name
+    for i in qres3:
+        q1=dict(i)
+        q2=q1['name']
+        q3=q1['volume']
+        q4=dict(q3)
+        q5=q4['name']
+        vid="https://{}/api/storage/volumes?name={}".format(cluster,q5)
+        response = requests.get(vid, headers=headers_inc, verify=False)
+        vol = response.json()
+        vol1=dict(vol)
+        vol3=vol1['records']
+        #vol2 contains vol uuid.
+        for j in vol3:
+            volt=dict(j)
+            volt2= volt['uuid']
+    qid="https://{}/api/storage/quota/reports?qtree={}&volume.uuid={}".format(cluster,q2,volt2)
+    response = requests.get(qid, headers=headers_inc, verify=False)
+    vol = response.json()
+    qti=dict(vol)
+    qtr=qti['records']
+    #kid contains qtee index
+    for k in qtr:
+        id=dict(k)
+        kid=id['index']
+        knamet=id['qtree']
+        knamet2=dict(knamet)
+        kname=knamet2['name']
+        qu1="https://{}/api/storage/quota/reports/{}/{}".format(cluster,volt2,kid)
+        response = requests.get(qu1, headers=headers_inc, verify=False)
+        quores= response.json()
+        quores2=dict(quores)
+        quos=quores['space']
+        quost=dict(quos)
+        hl=quost['hard_limit']
+        h2=(((int(hl)/1024)/1024)/1024)
+    
+    
     for volumelist in vols:
         nfl=dict(volumelist)
         #print (nfl)
@@ -52,13 +96,32 @@ def disp_vol(cluster: str, svm_name: str, headers_inc: str):
         vuid12 = response.json()
         conn=dict(vuid12)
         conn1=conn['records']
-        c2=0
+        quo2=qid="https://{}/api/storage/quota/reports?qtree={}&volume.uuid={}".format(cluster,q2,volt2)
+        response = requests.get(quo2, headers=headers_inc, verify=False)
+        quo2 = response.json()
+        qti2=dict(vol)
+        qtrr2=qti2['records']
+        #kid contains qtee index
+        for k in qtr:
+            id=dict(k)
+            kid=id['index']
+        qu1="https://{}/api/storage/quota/reports/{}/{}".format(cluster,volt2,kid)
+        response = requests.get(qu1, headers=headers_inc, verify=False)
+        quores= response.json()
+        quostt=dict(quores)
+        quos=quores['space']
+        quost=dict(quos)
+        hl=quost['hard_limit']
         tmp2=[]
         for con2 in conn1:
-            c2=c2+1
             tmp=dict(con2)
             tmp1=tmp['name']
-            tmp2.append(tmp1)
+            if tmp1==kname:                
+                h3=str(h2)
+                tmpt=tmp1+"Qutoa"+h3
+                tmp2.append(tmpt)
+            else:
+                tmp2.append(tmp1)
         tab.add_row([ven,tmp2])
         tab.set_cols_width([18,50])
         tab.set_cols_align(['c','c'])

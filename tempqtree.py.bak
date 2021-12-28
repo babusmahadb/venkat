@@ -39,15 +39,14 @@ def disp_vol(cluster: str, svm_name: str, headers_inc: str):
     tmp = dict(get_volumes(cluster, svm_name, headers_inc))
     vols = tmp['records']
     tab = tt.Texttable()
-    header = (['Volume name', 'Qtree'])
+    header = (['Volume name', 'Qtree','Hard_Limit','Used Value','Used %'])
     tab.header(header)
-    tab.set_cols_width([18,50])
-    tab.set_cols_align(['c','c'])
+    tab.set_cols_width([18,30,16,15,15])
+    tab.set_cols_align(['c','c','c','c','c'])
     for volumelist in vols:
         nfl=dict(volumelist)
         #print (nfl)
         ven=nfl['name']
-        print (ven)
     vid="https://{}/api/storage/volumes?name={}".format(cluster,ven)
     response = requests.get(vid, headers=headers_inc, verify=False)
     volt = response.json()
@@ -55,15 +54,16 @@ def disp_vol(cluster: str, svm_name: str, headers_inc: str):
     voltemp=vol1['records']
     voltemp2=dict(voltemp)
     vuid=voltemp2['uuid']
-    print(vuid)
     qr="https://{}/api/storage/qtrees/?id=!0".format(cluster)
     response = requests.get(qr, headers=headers_inc, verify=False)
     qres = response.json()
     qres2=dict(qres)
     qres3=qres2['records']
+    qtreelist=[]
     for i in qres3:
         q2=dict(i)
         qtname=q2['name']
+        qtreelist.append(qtname)
     nc="https://{}/api/storage/qtrees/?svm.name={}&volume.name={}".format(cluster,svm_name,ven)
     response = requests.get(nc, headers=headers_inc, verify=False)
     vuid12 = response.json()
@@ -74,50 +74,48 @@ def disp_vol(cluster: str, svm_name: str, headers_inc: str):
         connr=dict(k)
         convl=connr['volume']
         vuid=convl['uuid']
-        print("volume UUID",vuid)
-        print("qtree name", qtname)
         qind="https://{}/api/storage/quota/reports?qtree={}&volume.uuid={}".format(cluster,qtname,vuid)
-        print("Qind",qind)
         qindres = requests.get(qind, headers=headers_inc, verify=False)
         qindtemp = response.json()
-        print("qtindtem",qindtemp)
         qindtemp1=dict(qindtemp)
         qindtemp2=qindtemp1['records']
-        #Qkid contains qtee index
-        for q in qindtemp2:
-            id=dict(q)
-            print("variable",id)
-            Qid=id['index']
-            print("Qid)
     qid="https://{}/api/storage/quota/reports?qtree={}&volume.uuid={}".format(cluster,qtname,vuid)
-    response = requests.get(qid, headers=headers_inc, verify=False)#print (qres3)
-    qjason = response.json()#q2 contains qtree name
-    pring("qjason",qjason)
+    response = requests.get(qid, headers=headers_inc, verify=False)
+    qjason = response.json()
     qti=dict(qjason)
-    print("Qti Valuue", qti)
-    qtr=qti['records']   
-    qrep="https://{}/api/storage/qtrees/?svm.name={}&volume.name={}".format(cluster,svm_name,ven)
-    response = requests.get(qrep, headers=headers_inc, verify=False)
-    quorep = response.json()
-    quotemp=dict(quorep)
-    print(quotemp)
-    conn11=quotemp['records']
-    print("Sai" ,conn11)
-    q1=dict(i)
-    q2=q1['name']
-    q3=q1['volume']
-    q4=dict(q3)
-    q5=q4['name']
-    #print(q2)
-    vid="https://{}/api/storage/volumes?name={}".format(cluster,q5)
-    response = requests.get(vid, headers=headers_inc, verify=False)
-    vol = response.json()
-    vol1=dict(vol)
-    vol3=vol1['records']
-    #vol2 contains vol uuid.
-    tab.set_cols_align(['c','c'])
-    
-        
+    qtit1=qti['records']
+    for qt in qtit1:
+        qtit2=dict(qt)
+        qtindex=qtit2['index']
+    qhl="https://{}/api/storage/quota/reports/{}/{}".format(cluster,vuid,qtindex)
+    response = requests.get(qhl, headers=headers_inc, verify=False)
+    qhltemp = response.json()
+    qhltemp2=dict(qhltemp)
+    qhlsp=qhltemp2['space']
+    qhl=qhlsp['hard_limit']
+    qhl2=qhlsp['used']
+    qused=qhl2['total']
+    qhlp=qhl2['hard_limit_percent']
+    nc="https://{}/api/storage/qtrees/?svm.name={}&volume.name={}".format(cluster,svm_name,ven)
+    response = requests.get(nc, headers=headers_inc, verify=False)
+    vuid12 = response.json()
+    conn=dict(vuid12)
+    conn1=conn['records']
+    tmp2=[]
+    for con2 in conn1:
+        tmp=dict(con2)
+        tmp1=tmp['name']
+        for i in qtreelist:
+            if tmp1==i:                
+                qhlstr=str(qhl)
+                tmpt=i+"Qutoa"+qhlstr
+                tmp2.append(tmpt)
+                print(tmp2)
+            else:
+                tmp2=[]tmp2.append(tmp1)
+                print(tmp2)
+    tab.add_row([ven,tmp2,qhl,qused,qhlp])
+    tab.set_cols_align(['c','c','c','c','c'])
     setdisplay = tab.draw()
     print(setdisplay)
 

@@ -42,28 +42,60 @@ def disp_vol(cluster: str, svm_name: str, headers_inc: str):
     tab.header(header)
     tab.set_cols_width([18,50])
     tab.set_cols_align(['c','c'])
-    for volumelist in vols:
-        nfl=dict(volumelist)
-        #print (nfl)
-        ven=nfl['name']
-        #print (ven)
-        nc="https://{}/api/storage/qtrees/?svm.name={}&volume.name={}".format(cluster,svm_name,ven)
-        response = requests.get(nc, headers=headers_inc, verify=False)
-        vuid12 = response.json()
-        conn=dict(vuid12)
-        conn1=conn['records']
-        c2=0
-        tmp2=[]
-        for con2 in conn1:
-            c2=c2+1
-            tmp=dict(con2)
-            tmp1=tmp['name']
-            tmp2.append(tmp1)
-        tab.add_row([ven,tmp2])
+    qr="https://{}/api/storage/qtrees/".format(cluster)
+    response = requests.get(qr, headers=headers_inc, verify=False)
+    qres = response.json()
+    qres2=dict(qres)
+    qres3=qres2['records']
+    #print (qres3)
+    #q2 contains qtree name
+    qtreelist=[]
+    for i in qres3:
+        q1=dict(i)
+        q2=q1['name']
+        qtreelist.append(q2)
+        #print(qtreelist)
+        q3=q1['volume']
+        q4=dict(q3)
+        q5=q4['name']
+        vid="https://{}/api/storage/volumes?name={}".format(cluster,q5)
+        response = requests.get(vid, headers=headers_inc, verify=False)
+        vol = response.json()
+        vol1=dict(vol)
+        vol3=vol1['records']
+        #vol2 contains vol uuid.
+        for j in vol3:
+            volt=dict(j)
+            volt2= volt['uuid']
+        qid="https://{}/api/storage/quota/reports/{}".format(cluster,volt2)
+        response = requests.get(qid, headers=headers_inc, verify=False)
+        vol2q = response.json()
+        qti=dict(vol2q)
+        qtr=qti['records']
+        #print("XXXXXXX",qtr)
+        #kid contains qtee index
+        kidlist=[]
+        for k in qtr:
+            id=dict(k)
+            kid=id['index']
+            #print("XXXXXXXX",kid)
+            qu1="https://{}/api/storage/quota/reports/{}/{}".format(cluster,volt2,kid)
+            response = requests.get(qu1, headers=headers_inc, verify=False)
+            quores= response.json()
+            quores2=dict(quores)
+            quos=quores['space']
+            quost=dict(quos)
+            hl=quost['hard_limit']
+            h2=(((int(hl)/1024)/1024)/1024)
+        if q2 == "":
+            tab.add_row([q5,q2])
+        else:
+            h3=str(h2)
+            tmpt=q2+" Qtree Quota is "+h3
+            tab.add_row([q5,tmpt])
         tab.set_cols_width([18,50])
         tab.set_cols_align(['c','c'])
-        
-        
+       
     setdisplay = tab.draw()
     print(setdisplay)
 

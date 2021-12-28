@@ -83,6 +83,8 @@ def disp_vol(cluster: str, svm_name: str, headers_inc: str):
         qu1="https://{}/api/storage/quota/reports/{}/{}".format(cluster,volt2,kid)
         response = requests.get(qu1, headers=headers_inc, verify=False)
         quores= response.json()
+        quores2=dict(quores)
+        print(quores2)
         quos=quores['space']
         quost=dict(quos)
         hl=quost['hard_limit']
@@ -111,6 +113,8 @@ def disp_vol(cluster: str, svm_name: str, headers_inc: str):
         qu1="https://{}/api/storage/quota/reports/{}/{}".format(cluster,volt2,kid)
         response = requests.get(qu1, headers=headers_inc, verify=False)
         quores= response.json()
+        quostt=dict(quores)
+        print("QUOST",quostt) 
         quos=quores['space']
         quost=dict(quos)
         hl=quost['hard_limit']
